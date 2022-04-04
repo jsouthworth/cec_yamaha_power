@@ -1,4 +1,4 @@
-module jsouthworth.net/go/cec_yamaha_power
+module github.com/jsouthworth/cec_yamaha_power
 
 go 1.15
 

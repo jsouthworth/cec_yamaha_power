@@ -10,8 +10,8 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	cec "jsouthworth.net/go/cec_yamaha_power/internal/cec_monitor"
-	i2c "jsouthworth.net/go/cec_yamaha_power/internal/i2c_remote_controller"
+	cec "github.com/jsouthworth/cec_yamaha_power/internal/cec_monitor"
+	i2c "github.com/jsouthworth/cec_yamaha_power/internal/i2c_remote_controller"
 )
 
 type IRCmd struct {
