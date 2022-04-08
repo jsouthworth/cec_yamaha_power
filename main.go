@@ -83,7 +83,7 @@ func supervisor() int {
 		cmd.Stdin = os.Stdin
 		err := cmd.Run()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "supervisor:", err)
+			fmt.Fprintln(os.Stderr, "supervisor: relay:", err)
 		}
 		// TODO: figure out how to break out of the loop when
 		// failures continually occur.
@@ -97,10 +97,6 @@ func mountProcfs() error {
 
 func mountSysfs() error {
 	return unix.Mount("sys", "/sys", "sysfs", 0, "")
-}
-
-func mountDevfs() error {
-	return unix.Mount("devtmpfs", "/dev", "devtmpfs", 0, "")
 }
 
 func reboot() {
@@ -122,11 +118,6 @@ func initProc() int {
 	err = mountSysfs()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "init-proc: mounting sysfs:", err)
-		halt()
-	}
-	err = mountDevfs()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "init-proc: mounting devfs:", err)
 		halt()
 	}
 	rc := supervisor()
