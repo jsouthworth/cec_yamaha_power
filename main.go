@@ -50,13 +50,13 @@ func relay() int {
 				opcodes <- cmd.Opcode
 			}))
 	if err != nil {
-		fmt.Println(os.Stderr, "relay:", err)
+		fmt.Fprintln(os.Stderr, "relay:", err)
 		return 1
 	}
 	defer conn.Close()
 	ir, err := i2c.Open(I2CBus, I2CAddr)
 	if err != nil {
-		fmt.Println(os.Stderr, "relay:", err)
+		fmt.Fprintln(os.Stderr, "relay:", err)
 		return 1
 	}
 	defer ir.Close()
@@ -73,7 +73,7 @@ func relay() int {
 func supervisor() int {
 	name, err := os.Executable()
 	if err != nil {
-		fmt.Println(os.Stderr, "supervisor:", err)
+		fmt.Fprintln(os.Stderr, "supervisor:", err)
 		return 1
 	}
 	for {
@@ -83,7 +83,7 @@ func supervisor() int {
 		cmd.Stdin = os.Stdin
 		err := cmd.Run()
 		if err != nil {
-			fmt.Println(os.Stderr, "supervisor:", err)
+			fmt.Fprintln(os.Stderr, "supervisor:", err)
 		}
 		// TODO: figure out how to break out of the loop when
 		// failures continually occur.
@@ -100,7 +100,7 @@ func mountSysfs() error {
 }
 
 func mountDevfs() error {
-	return unix.Mount("dev", "/dev", "devfs", 0, "")
+	return unix.Mount("devtmpfs", "/dev", "devtmpfs", 0, "")
 }
 
 func reboot() {
@@ -114,19 +114,19 @@ func halt() {
 }
 
 func initProc() int {
-	err := mountDevfs()
+	err := mountProcfs()
 	if err != nil {
-		fmt.Println(os.Stderr, "init-proc: mounting devfs:", err)
-		halt()
-	}
-	err = mountProcfs()
-	if err != nil {
-		fmt.Println(os.Stderr, "init-proc: mounting procfs:", err)
+		fmt.Fprintln(os.Stderr, "init-proc: mounting procfs:", err)
 		halt()
 	}
 	err = mountSysfs()
 	if err != nil {
-		fmt.Println(os.Stderr, "init-proc: mounting sysfs:", err)
+		fmt.Fprintln(os.Stderr, "init-proc: mounting sysfs:", err)
+		halt()
+	}
+	err = mountDevfs()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "init-proc: mounting devfs:", err)
 		halt()
 	}
 	rc := supervisor()
