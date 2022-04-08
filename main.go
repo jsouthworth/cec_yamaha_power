@@ -91,10 +91,50 @@ func supervisor() int {
 	}
 }
 
-func initProc() int {
-	defer unix.Syscall(
+func mountProcfs() error {
+	return unix.Mount("proc", "/proc", "proc", 0, "")
+}
+
+func mountSysfs() error {
+	return unix.Mount("sys", "/sys", "sysfs", 0, "")
+}
+
+func mountDevfs() error {
+	return unix.Mount("dev", "/dev", "devfs", 0, "")
+}
+
+func reboot() {
+	unix.Syscall(
 		unix.SYS_REBOOT, unix.LINUX_REBOOT_CMD_RESTART, 0, 0)
-	return supervisor()
+}
+
+func halt() {
+	unix.Syscall(
+		unix.SYS_REBOOT, unix.LINUX_REBOOT_CMD_HALT, 0, 0)
+}
+
+func initProc() int {
+	err := mountDevfs()
+	if err != nil {
+		fmt.Println(os.Stderr, "init-proc: mounting devfs:", err)
+		halt()
+	}
+	err = mountProcfs()
+	if err != nil {
+		fmt.Println(os.Stderr, "init-proc: mounting procfs:", err)
+		halt()
+	}
+	err = mountSysfs()
+	if err != nil {
+		fmt.Println(os.Stderr, "init-proc: mounting sysfs:", err)
+		halt()
+	}
+	rc := supervisor()
+	if rc != 0 {
+		halt()
+	}
+	reboot()
+	return 0
 }
 
 var cmd string
