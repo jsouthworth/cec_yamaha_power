@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"time"
+	"io/ioutil"
+	"path/filepath"
 
 	"golang.org/x/sys/unix"
 
@@ -20,7 +22,7 @@ type IRCmd struct {
 	cmd   uint16
 }
 
-func (c *IRCmd) String() string {
+func (c IRCmd) String() string {
 	var proto string
 	switch c.proto {
 	case i2c.NEC:
@@ -28,7 +30,7 @@ func (c *IRCmd) String() string {
 	case i2c.ONKYO:
 		proto = "ONKYO"
 	}
-	return fmt.Sprintf("%s, %x, %x", proto, c.addr, c.cmd)
+	return fmt.Sprintf("%s\t%x\t%x", proto, c.addr, c.cmd)
 }
 
 const (
@@ -55,6 +57,12 @@ var cmds = map[string]func() int{
 
 func relay() int {
 	fmt.Println("CEC yamaha power relay process")
+	files, err := ioutil.ReadDir("/dev")
+	if err == nil {
+		for _, file := range files {
+			fmt.Println(filepath.Join("/dev", file.Name()))
+		}
+	}
 	opcodes := make(chan cec.CECOpcode, 1)
 	conn, err := cec.Open(CECDev, "monitor",
 		cec.OnCommandReceived(
