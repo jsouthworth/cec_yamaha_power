@@ -20,6 +20,17 @@ type IRCmd struct {
 	cmd   uint16
 }
 
+func (c *IRCmd) String() string {
+	var proto string
+	switch c.proto {
+	case i2c.NEC:
+		proto = "NEC"
+	case i2c.ONKYO:
+		proto = "ONKYO"
+	}
+	return fmt.Sprintf("%s, %x, %x", proto, c.addr, c.cmd)
+}
+
 const (
 	CECDev  = "/dev/ttyACM0"
 	I2CBus  = ""
@@ -43,6 +54,7 @@ var cmds = map[string]func() int{
 }
 
 func relay() int {
+	fmt.Println("CEC yamaha power relay process")
 	opcodes := make(chan cec.CECOpcode, 1)
 	conn, err := cec.Open(CECDev, "monitor",
 		cec.OnCommandReceived(
@@ -50,19 +62,21 @@ func relay() int {
 				opcodes <- cmd.Opcode
 			}))
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "relay:", err)
+		fmt.Fprintln(os.Stderr, "relay cec.Open:", err)
 		return 1
 	}
 	defer conn.Close()
 	ir, err := i2c.Open(I2CBus, I2CAddr)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "relay:", err)
+		fmt.Fprintln(os.Stderr, "relay i2c.Open:", err)
 		return 1
 	}
 	defer ir.Close()
 	for opcode := range opcodes {
+		fmt.Printf("received CEC opcode: %x\n", opcode)
 		ircmds := IRCmds[opcode]
 		for _, cmd := range ircmds {
+			fmt.Printf("Sending cmd: %s\n", cmd)
 			ir.Send(cmd.proto, cmd.addr, cmd.cmd)
 			time.Sleep(1 * time.Second)
 		}
@@ -71,6 +85,7 @@ func relay() int {
 }
 
 func supervisor() int {
+	fmt.Println("CEC yamaha power supervisor")
 	name, err := os.Executable()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "supervisor:", err)
@@ -110,6 +125,7 @@ func halt() {
 }
 
 func initProc() int {
+	fmt.Println("CEC yamaha power init process")
 	err := mountProcfs()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "init-proc: mounting procfs:", err)
