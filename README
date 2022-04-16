@@ -1,0 +1,16 @@
+cec_yamaha_power
+----------------
+This project is very specific to my home theater setup. It is
+intentionally not a general purpose mechanism and solves my very
+specific problem.
+
+cec_yamaha_power uses a PulseEight USB-CEC Adapter to monitor the CEC
+bus between a source device and a TV to control the power and scene of
+a Yamaha HTR-6230 reciever. When it hears the ACTIVE_SOURCE opcode it
+turns on the reciever and activates Scene 1; when it hears the STANDBY
+opcode it turns the reciever off. The IR remote control logic is
+implemented on an Arduino Nano Every connected to the i2c bus of a
+Raspberry Pi (see the i2c_remote directory).
+
+The program is intended to be used as init for a minimal buildroot
+based Linux image (see https://github.com/jsouthworth/cec_yamaha_power_build).
