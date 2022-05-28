@@ -4,11 +4,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
-	"time"
-	"io/ioutil"
 	"path/filepath"
+	"time"
 
 	"golang.org/x/sys/unix"
 
@@ -67,7 +67,13 @@ func relay() int {
 	conn, err := cec.Open(CECDev, "monitor",
 		cec.OnCommandReceived(
 			func(cmd *cec.Command) {
-				opcodes <- cmd.Opcode
+				switch cmd.Initiator {
+				case cec.CECDEVICE_PLAYBACKDEVICE1,
+					cec.CECDEVICE_PLAYBACKDEVICE2,
+					cec.CECDEVICE_PLAYBACKDEVICE3:
+					opcodes <- cmd.Opcode
+
+				}
 			}))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "relay cec.Open:", err)
